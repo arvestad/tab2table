@@ -80,8 +80,8 @@ sub array2underline {
 my $line_no=0;
 if (defined $header) {
     $line_no++;
-    print $header, "\n";
     my @ha = split(/,|\|/, $header);
+    print join('|', @ha), "\n";	# Re-joining the header instead of printing it as-is: properly converts commas to pipes this way.
     print array2underline(\@ha), "\n";
 }
 
