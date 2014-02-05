@@ -1,0 +1,97 @@
+#! /usr/bin/env perl -w
+
+use strict;
+
+=pod
+
+=head1 NAME
+
+tab2table - Read a tab delimited (or similar) from stdin and output a table in MarkDown Extra or HTML format.
+
+=head1 SYNOPSIS
+
+tab2table [<options>] [<file>]
+
+=head1 DESCRIPTION
+
+By default, a MarkDown Extra table will be output to stdout.
+
+=head2 OPTIONS
+
+=over 4
+
+=item B<-u, -h, --help>
+
+This text.
+
+=item B<-s>
+    
+Use one or several consecutive spaces as tabdelimiter.
+
+=item B<-1 str>
+
+Use the string 'str' as header instead of the first line of the input.
+The string should contain as many header elements as there are columns
+in the input, separated by comma or pipe symbol ('|').
+
+=back
+
+=cut
+
+use Pod::Usage;
+use Pod::Text;
+
+###
+
+my $outformat='mde';		# Markdown Extra as default. 'html' as other valid option.
+my $sep='\t';			# Separator of columns: a tab by default.
+my $header=undef;		# If not undef, then use this as a header line.
+
+while (my $opt = shift @ARGV) {
+    if ($opt eq '-h' || $opt eq '--help') {
+	pod2usage({-verbose=>2});
+	exit 0;
+    } elsif ($opt eq '-u') {
+	pod2usage();
+	exit 0;
+    } elsif ($opt eq '--html') {
+	print STDERR "HTML: Not implemented yet.\n";
+	exit(1);
+	$outformat='html';
+    } elsif ($opt eq '-s') {
+	$sep='\s+';
+    } elsif ($opt eq '-1') {
+	$header=shift @ARGV;
+    } elsif (substr($opt, 0, 1) ne '-') {
+	unshift @ARGV, $opt;
+	last;
+    }
+}
+
+sub array2underline {
+    my $aref = shift;
+    my @underline = ();
+    for my $e (@$aref) {
+	push(@underline, '-' x length($e));
+    }
+    return join('|', @underline);
+}
+
+my $line_no=0;
+if (defined $header) {
+    $line_no++;
+    print $header, "\n";
+    my @ha = split(/,|\|/, $header);
+    print array2underline(\@ha), "\n";
+}
+
+while (<>) {
+    chomp;
+    my @elems = split(/$sep/);
+    my $str = join('|', @elems);
+    print $str, "\n";
+    if ($line_no == 0) {
+	print array2underline(\@elems), "\n";
+    }
+    $line_no++;
+}
